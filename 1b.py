@@ -8,13 +8,14 @@ import json
 import time
 import common_words
 
+
 client = MongoClient()
 db = client.twitterdb
 
 
 class Listener(tweepy.StreamListener):
     def on_data(self, raw_data):
-        print(raw_data)
+        # print(raw_data)
         data_json = json.loads(raw_data)
         db.not_geo.insert(data_json)
         return True
@@ -26,6 +27,10 @@ class Listener(tweepy.StreamListener):
         print(status_code)
         # returning non-False reconnects the stream, with backoff.
 
+def insert_search_results_to_db(search_results):
+    for result in search_results:
+        db.rest_collection.insert(result._json)
+
 
 auth = tweepy.OAuthHandler(config.CONSUMER_KEY, config.CONSUMER_SECRET)
 auth.set_access_token(config.ACCESS_TOKEN, config.ACCESS_TOKEN_SECRET)
@@ -33,9 +38,11 @@ auth.set_access_token(config.ACCESS_TOKEN, config.ACCESS_TOKEN_SECRET)
 twitterStream = tweepy.Stream(auth, Listener())
 api = tweepy.API(auth)
 trends_available = api.trends_available() # returns ids
-trends_place = api.trends_place(id)
-trend_clostest = api.trend_clostest(lat, long)
+# print(trends_available)
+# trends_place = api.trends_place(id)
+# trend_clostest = api.trend_clostest(lat, long)
 
-twitterStream.sample(languages=["en"])
-
-# 
+# twitterStream.sample(languages=["en"])
+# while True:
+search = api.search("bike", lang="en")
+insert_search_results_to_db(search)
