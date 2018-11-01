@@ -11,13 +11,18 @@ import common_words
 
 client = MongoClient()
 db = client.twitterdb
+found_first_tweet = False
+first_tweet = None
 
 
 class Listener(tweepy.StreamListener):
-    def on_data(self, raw_data):
-        # print(raw_data)
-        data_json = json.loads(raw_data)
-        db.not_geo.insert(data_json)
+    def on_status(self, status):
+        global found_first_tweet, first_tweet
+        if not found_first_tweet:
+            first_tweet = status
+            found_first_tweet = True
+
+        db.not_geo.insert(status._json)
         return True
 
     def on_error(self, status_code):
@@ -29,6 +34,7 @@ class Listener(tweepy.StreamListener):
 
 def insert_search_results_to_db(search_results):
     for result in search_results:
+        print(result)
         db.rest_collection.insert(result._json)
 
 
@@ -37,12 +43,17 @@ auth.set_access_token(config.ACCESS_TOKEN, config.ACCESS_TOKEN_SECRET)
 
 twitterStream = tweepy.Stream(auth, Listener())
 api = tweepy.API(auth)
-trends_available = api.trends_available() # returns ids
+# trends_available = api.trends_available() # returns ids
 # print(trends_available)
 # trends_place = api.trends_place(id)
 # trend_clostest = api.trend_clostest(lat, long)
+twitterStream.sample(languages=["en"], async=True)
 
-# twitterStream.sample(languages=["en"])
+# Wait until first tweet is found from stream (maybe use wait instead of pass?)
+while not found_first_tweet:
+    pass
+
+
 # while True:
-search = api.search("bike", lang="en")
+search = api.search("bike", lang="en", since_id=first_tweet.id)
 insert_search_results_to_db(search)

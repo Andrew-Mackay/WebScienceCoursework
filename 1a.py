@@ -1,12 +1,11 @@
 '''
 1a. Use streaming API (gardenhose api) for collecting 1% data
 '''
-
 import config
 from pymongo import MongoClient
 import tweepy
 import json
-import time
+
 
 client = MongoClient()
 db = client.twitterdb
