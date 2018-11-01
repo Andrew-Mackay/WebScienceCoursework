@@ -1,5 +1,5 @@
 '''
-1b. Enhance the crawling using Streaming % REST API
+1b. Enhance the crawling using Streaming & REST API
 '''
 import config
 from pymongo import MongoClient
@@ -97,7 +97,15 @@ except:
 
 while time.time() < time_end:
     time.sleep(10)
-
+    limits = api.rate_limit_status()
+    resources = limits["resources"]
+    searches = resources["search"]["/search/tweets"]
+    application = resources["application"]["/application/rate_limit_status"]
+    statuses = resources["statuses"]["/statuses/user_timeline"]
+    print("Searches (Trends): ", searches)
+    print("Application: ", application)
+    print("Statuses (Users): ", statuses)
+    
 time_expired = True
 
 # Time expired

@@ -1,0 +1,13 @@
+For 1b
+Streaming
+Got UK trends sorted by tweet volume
+Got Users from streaming and grabbed all their tweets
+
+For 1c
+Filter streaming for Glasgow area
+-> took these users as known geo-tagged and added to queue
+--> for each user, grabbed all their tweets
+Trends in Glasgow sorted by tweet volume
+->searched within Glasgow area
+
+Threading for both
