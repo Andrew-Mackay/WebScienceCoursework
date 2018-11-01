@@ -32,9 +32,9 @@ print("\n---------------------- 2b. -----------------")
 total = db.enhanced_crawler_1b.count()
 print("Geo-tagged data from Glasgow: ", total)
 overlap = 0
-for tweet in db.basic_crawler_1a.find():
-     if db.geo_tagged_1c.count_documents({"id":tweet["id"]}) > 0:
-         overlap += 1
+# for tweet in db.basic_crawler_1a.find():
+#      if db.geo_tagged_1c.count_documents({"id":tweet["id"]}) > 0:
+#          overlap += 1
 print("Number of tweets common to both geo-tagged Glasgow and 1%: ", overlap)
 
 print("\n---------------------- 2c. -----------------")
@@ -57,3 +57,12 @@ for collection_name, collection in collections.items():
         number_of_duplicates += y["count"]
     print("Collection: ", collection_name)
     print("    Number of Duplicates: ", number_of_duplicates, "\n")
+
+print("---------------------- 2d. -----------------")
+for collection_name, collection in collections.items():
+    number_of_retweets = db[collection_name].count_documents({"retweeted_status": {"$exists": True}})
+    number_of_quotes = db[collection_name].count_documents({"is_quote_status": True})
+    print("Collection: ", collection_name)
+    print("    Number of Retweets: ", number_of_retweets)
+    print("    Number of Quotes: ", number_of_quotes, "\n")
+
