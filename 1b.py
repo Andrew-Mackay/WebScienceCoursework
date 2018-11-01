@@ -14,13 +14,16 @@ MAX_TWEETS_PER_TREND = 40000  # Only take this many tweets per trend (helps to e
 COLLECTION_NAME = "enhanced_crawler_1b"
 time_expired = False
 
+users_to_process = queue.Queue()
+
 client = MongoClient()
 db = client.twitterdb
 
 
 class Listener(tweepy.StreamListener):
     def on_status(self, status):
-        # global found_first_tweet, first_tweet
+        global users_to_process
+        users_to_process.put(status.user.id)
         db[COLLECTION_NAME].insert(status._json)
         return True
 
@@ -32,11 +35,24 @@ class Listener(tweepy.StreamListener):
         # returning non-False reconnects the stream, with backoff.
 
 
+def process_user(user_id):
+    non_geo_count = 0  # Used to break from users who have many non geo tweets in a row
+    break_count = 5
+    for status in tweepy.Cursor(api.user_timeline, id=user_id).items():
+        if status.geo is not None:
+            db[COLLECTION_NAME].insert(status._json)
+            print("+1 user tweet added")
+        else:
+            non_geo_count += 1
+
+        if time_expired or non_geo_count > break_count:
+            break
+
 def user_based_probes(threadName):
     print(threadName + " Started.")
     while not time_expired:
-        # TODO implement
-        pass
+        if not users_to_process.empty():
+            process_user(users_to_process.get())
 
 def sorted_helper(tweet_volume):
     # if no tweet_volume information is available set to 0

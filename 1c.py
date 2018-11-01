@@ -10,15 +10,12 @@ import time
 import queue
 import _thread
 
-RUN_TIME = 2  # how long program should run for (in minutes)
+RUN_TIME = 15  # how long program should run for (in minutes)
 GLASGOW_WOEID = 21125  # WOEID for Glasgow
 GEOBOX_GLASGOW = [-4.359484911, 55.8030299038, -4.1260254383, 55.9101684715]  # taken from https://boundingbox.klokantech.com/
 GLASGOW_GEOCODE = "55.86515,-4.25763,6km"  # taken from http://latitudelongitude.org/gb/glasgow/
 COLLECTION_NAME = "geo_tagged_1c"
 time_expired = False
-user_thread_finished = False
-trend_thread_finished = False
-keyword_thread_finished = False
 
 users_with_geo_tagged_tweets = queue.Queue()
 
@@ -43,13 +40,17 @@ class Listener(tweepy.StreamListener):
 
 
 def process_user(user_id):
+    non_geo_count = 0  # Used to break from users who have many non geo tweets in a row
+    break_count = 5
     for status in tweepy.Cursor(api.user_timeline, id=user_id).items():
         if status.geo is not None:
             db[COLLECTION_NAME].insert(status._json)
             print("+1 user tweet added")
-        if time_expired:
+        else:
+            non_geo_count += 1
+
+        if time_expired or non_geo_count > break_count:
             break
-    # maybe if 10 not geo in a row break?
 
 def user_based_probes(threadName):
     print(threadName + " Started.")
@@ -98,6 +99,14 @@ except:
 
 while time.time() < time_end:
     time.sleep(10)
+    limits = api.rate_limit_status()
+    resources = limits["resources"]
+    searches = resources["search"]["/search/tweets"]
+    application = resources["application"]["/application/rate_limit_status"]
+    statuses = resources["statuses"]["/statuses/user_timeline"]
+    print("Searches (Trends): ", searches)
+    print("Application: ", application)
+    print("Statuses (Users): ", statuses)
 
 time_expired = True
 
