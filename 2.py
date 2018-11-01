@@ -32,9 +32,9 @@ print("\n---------------------- 2b. -----------------")
 total = db.enhanced_crawler_1b.count()
 print("Geo-tagged data from Glasgow: ", total)
 overlap = 0
-# for tweet in db.basic_crawler_1a.find():
-#      if db.geo_tagged_1c.count_documents({"id":tweet["id"]}) > 0:
-#          overlap += 1
+for tweet in db.basic_crawler_1a.find():
+     if db.geo_tagged_1c.count_documents({"id":tweet["id"]}) > 0:
+         overlap += 1
 print("Number of tweets common to both geo-tagged Glasgow and 1%: ", overlap)
 
 print("\n---------------------- 2c. -----------------")
