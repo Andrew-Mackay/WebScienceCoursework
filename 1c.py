@@ -10,10 +10,15 @@ import time
 import queue
 import _thread
 
-RUN_TIME = 30  # how long program should run for (in minutes)
+RUN_TIME = 2  # how long program should run for (in minutes)
 GLASGOW_WOEID = 21125  # WOEID for Glasgow
 GEOBOX_GLASGOW = [-4.359484911, 55.8030299038, -4.1260254383, 55.9101684715]  # taken from https://boundingbox.klokantech.com/
+GLASGOW_GEOCODE = "55.86515,-4.25763,6km"  # taken from http://latitudelongitude.org/gb/glasgow/
 COLLECTION_NAME = "geo_tagged_1c"
+time_expired = False
+user_thread_finished = False
+trend_thread_finished = False
+keyword_thread_finished = False
 
 users_with_geo_tagged_tweets = queue.Queue()
 
@@ -26,6 +31,7 @@ class Listener(tweepy.StreamListener):
         global users_with_geo_tagged_tweets
         users_with_geo_tagged_tweets.put(status.user.id)
         db[COLLECTION_NAME].insert(status._json)
+        print("+1 stream tweet added")
         return True
 
     def on_error(self, status_code):
@@ -40,11 +46,14 @@ def process_user(user_id):
     for status in tweepy.Cursor(api.user_timeline, id=user_id).items():
         if status.geo is not None:
             db[COLLECTION_NAME].insert(status._json)
+            print("+1 user tweet added")
+        if time_expired:
+            break
     # maybe if 10 not geo in a row break?
 
 def user_based_probes(threadName):
     print(threadName + " Started.")
-    while True:
+    while not time_expired:
         if not users_with_geo_tagged_tweets.empty():
             process_user(users_with_geo_tagged_tweets.get())
 
@@ -61,9 +70,14 @@ def trend_based_probes(threadName):
     sorted_glasgow_trends = sorted(glasgow_trends, key=lambda k: sorted_helper(k['tweet_volume']), reverse=True)  # sort trends by tweet volume
     for trend in sorted_glasgow_trends:
         print(trend["name"], trend["tweet_volume"])
-        for status in tweepy.Cursor(api.search, q=trend["name"], rpp=100, lang="en").items():
+        for status in tweepy.Cursor(api.search, q=trend["name"], rpp=100, lang="en", geocode=GLASGOW_GEOCODE).items():
             if status.geo is not None:
                 db[COLLECTION_NAME].insert(status._json)
+                print("+1 trend tweet added")
+            if time_expired:
+                break
+        if time_expired:
+            break
 
 auth = tweepy.OAuthHandler(config.CONSUMER_KEY, config.CONSUMER_SECRET)
 auth.set_access_token(config.ACCESS_TOKEN, config.ACCESS_TOKEN_SECRET)
@@ -77,23 +91,19 @@ api = tweepy.API(auth, wait_on_rate_limit=True)
 
 # User based probes and keyword based probes handled on seperate threads
 try:
-   user_thread = _thread.start_new_thread(user_based_probes, ("User_thread",))
-   trend_thread = _thread.start_new_thread(trend_based_probes, ("Trend-thread",))
+   _thread.start_new_thread(user_based_probes, ("User_thread", ))
+   _thread.start_new_thread(trend_based_probes, ("Trend-thread", ))
 except:
    print("Error: unable to start thread")
 
-while True:
-    # Quit if run for over 1 hour
-    if time.time() < time_end:
-        time.sleep(30)
-    else:
-        break
+while time.time() < time_end:
+    time.sleep(10)
 
-# Time expired, kill all threads
+time_expired = True
+
+# Time expired
 twitterStream.disconnect()
-user_thread.exit()
-trend_thread.exit()
-exit()
+
 
 
 
