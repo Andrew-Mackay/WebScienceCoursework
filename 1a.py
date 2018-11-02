@@ -7,6 +7,8 @@ import tweepy
 import json
 import time
 from datetime import datetime
+from datetime import timedelta
+
 
 RUN_TIME = 60  # how long program should run for (in minutes)
 COLLECTION_NAME = "basic_crawler_1a"
@@ -36,18 +38,17 @@ class Listener(tweepy.StreamListener):
 auth = tweepy.OAuthHandler(config.CONSUMER_KEY, config.CONSUMER_SECRET)
 auth.set_access_token(config.ACCESS_TOKEN, config.ACCESS_TOKEN_SECRET)
 
-time_end = time.time() + 60 * RUN_TIME
+start_time = datetime.now()
+time_end =  start_time + timedelta(minutes=RUN_TIME)
 
 twitterStream = tweepy.Stream(auth, Listener())
 # Stream English tweets
 twitterStream.sample(languages=["en"], async=True)
 
-while time.time() < time_end:
+while datetime.now() < time_end:
     # sleep 30 seconds to avoid excess loop iterations
     time.sleep(30)
 
 twitterStream.disconnect()
-exit()
-
 
 

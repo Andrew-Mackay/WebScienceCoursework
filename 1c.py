@@ -10,9 +10,10 @@ import time
 import queue
 import _thread
 from datetime import datetime
+from datetime import timedelta
 
 
-RUN_TIME = 15  # how long program should run for (in minutes)
+RUN_TIME = 60  # how long program should run for (in minutes)
 GLASGOW_WOEID = 21125  # WOEID for Glasgow
 GEOBOX_GLASGOW = [-4.359484911, 55.8030299038, -4.1260254383, 55.9101684715]  # taken from https://boundingbox.klokantech.com/
 GLASGOW_GEOCODE = "55.86515,-4.25763,6km"  # taken from http://latitudelongitude.org/gb/glasgow/
@@ -89,7 +90,8 @@ def trend_based_probes(threadName):
 auth = tweepy.OAuthHandler(config.CONSUMER_KEY, config.CONSUMER_SECRET)
 auth.set_access_token(config.ACCESS_TOKEN, config.ACCESS_TOKEN_SECRET)
 
-time_end = time.time() + 60 * RUN_TIME
+start_time = datetime.now()
+time_end =  start_time + timedelta(minutes=RUN_TIME)
 
 twitterStream = tweepy.Stream(auth, Listener())
 twitterStream.filter(languages=["en"], async=True, locations=GEOBOX_GLASGOW)
@@ -103,7 +105,7 @@ try:
 except:
    print("Error: unable to start thread")
 
-while time.time() < time_end:
+while datetime.now() < time_end:
     time.sleep(10)
     limits = api.rate_limit_status()
     resources = limits["resources"]
