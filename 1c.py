@@ -9,6 +9,8 @@ import json
 import time
 import queue
 import _thread
+from datetime import datetime
+
 
 RUN_TIME = 15  # how long program should run for (in minutes)
 GLASGOW_WOEID = 21125  # WOEID for Glasgow
@@ -22,12 +24,16 @@ users_with_geo_tagged_tweets = queue.Queue()
 client = MongoClient()
 db = client.twitterdb
 
+def convert_to_datetime(status):
+    json_tweet = status._json
+    json_tweet["created_at"] = datetime.strptime(json_tweet["created_at"], '%a %b %d %H:%M:%S +0000 %Y')
+    return json_tweet
 
 class Listener(tweepy.StreamListener):
     def on_status(self, status):
         global users_with_geo_tagged_tweets
         users_with_geo_tagged_tweets.put(status.user.id)
-        db[COLLECTION_NAME].insert(status._json)
+        db[COLLECTION_NAME].insert(convert_to_datetime(status))
         print("+1 stream tweet added")
         return True
 
@@ -44,7 +50,7 @@ def process_user(user_id):
     break_count = 5
     for status in tweepy.Cursor(api.user_timeline, id=user_id).items():
         if status.geo is not None:
-            db[COLLECTION_NAME].insert(status._json)
+            db[COLLECTION_NAME].insert(convert_to_datetime(status))
             print("+1 user tweet added")
         else:
             non_geo_count += 1
@@ -73,7 +79,7 @@ def trend_based_probes(threadName):
         print(trend["name"], trend["tweet_volume"])
         for status in tweepy.Cursor(api.search, q=trend["name"], rpp=100, lang="en", geocode=GLASGOW_GEOCODE).items():
             if status.geo is not None:
-                db[COLLECTION_NAME].insert(status._json)
+                db[COLLECTION_NAME].insert(convert_to_datetime(status))
                 print("+1 trend tweet added")
             if time_expired:
                 break
