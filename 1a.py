@@ -6,7 +6,7 @@ from pymongo import MongoClient
 import tweepy
 import json
 import time
-
+from datetime import datetime
 
 RUN_TIME = 60  # how long program should run for (in minutes)
 COLLECTION_NAME = "basic_crawler_1a"
@@ -14,11 +14,15 @@ COLLECTION_NAME = "basic_crawler_1a"
 client = MongoClient()
 db = client.twitterdb
 
+def convert_to_datetime(status):
+    json_tweet = status._json
+    json_tweet["created_at"] = datetime.strptime(json_tweet["created_at"], '%a %b %d %H:%M:%S +0000 %Y')
+    return json_tweet
 
 class Listener(tweepy.StreamListener):
     def on_status(self, status):
         # global found_first_tweet, first_tweet
-        db[COLLECTION_NAME].insert(status._json)
+        db[COLLECTION_NAME].insert(convert_to_datetime(status))
         return True
 
     def on_error(self, status_code):

@@ -3,24 +3,7 @@ from pymongo import MongoClient
 from datetime import datetime
 import os
 
-
-def bar_chart(grouped_items, title, save=False):
-    heights = []
-    for group in grouped_items:
-        heights.append(group["total"])
-
-    plt.bar(range(len(heights)), heights)
-    # plt.xticks(range(len(labels)), labels)
-    plt.xlabel("Duration of 10 Minutes")
-    plt.ylabel("Number of Tweets")
-    plt.title(title)
-    file_name = title.split(':')[1][1:]
-    if save:
-        plt.savefig(os.getcwd() + "/" + file_name + '.svg' , format='svg', dpi=1200)
-    plt.show()
-
-
-def plot_histogram(start_time, end_time, collection_name, title):
+def get_tweets_grouped_by_time(start_time, end_time, collection_name):
     client = MongoClient()
     db = client.twitterdb
     collection = db[collection_name]
@@ -51,9 +34,113 @@ def plot_histogram(start_time, end_time, collection_name, title):
             }
         }
     ])
-    
-    bar_chart(grouped_by_time, "Collection: " + collection_name, save=True)
+    return grouped_by_time
 
-start = datetime(2018, 11, 2, 19, 0)
-end = datetime(2018, 11, 2, 19, 30)
-plot_histogram(start,end,"geo_tagged_1c", "foo")
+def get_duplicates_grouped_by_time(start_time, end_time, collection_name):
+    client = MongoClient()
+    db = client.twitterdb
+    duplicate_ids = []
+    duplicates = db[collection_name].aggregate([
+        {            
+            "$match": {
+                "created_at": {
+                    "$gte": start_time,
+                    "$lt": end_time
+                }
+            }
+        },
+        {
+            "$group": {
+                "_id": {"id": "$id"},
+                "uniqueIds": {"$addToSet": "$_id"},
+                "count": {"$sum": 1} 
+            } 
+        }, 
+        {
+            "$match": { 
+                "count": {"$gte": 2 } 
+            }
+        }
+    ])
+    # get mongo ids for all duplicate tweets
+    for duplicate in duplicates:
+        for id in duplicate['uniqueIds']:
+            duplicate_ids.append(id)
+    grouped_by_time = db[collection_name].aggregate([
+        {
+            "$match": {
+                "_id": {
+                    "$in": duplicate_ids
+                    }
+            }
+        },
+        {
+            '$group': {
+                "_id": { 
+                    "y": {'$year': '$created_at'},
+                    "m": {'$month': '$created_at'},
+                    "d": {'$dayOfMonth': '$created_at'},
+                    "h": {'$hour': '$created_at'},
+                    "interval": {
+                        "$subtract": [ 
+                        { "$minute": "$created_at" },
+                        { "$mod": [{ "$minute": "$created_at"}, 2] }
+                        ]
+                    }
+                },
+                "total": {'$sum': 1}
+            }
+        }
+    ])
+    return grouped_by_time
+
+def plot_basic_histogram(start_time, end_time, collection_name, save=True):
+    grouped_tweets = get_tweets_grouped_by_time(start_time, end_time, collection_name)
+    heights_grouped = []
+    x_labels = range(0, 70, 10)
+    for group in grouped_tweets:
+        heights_grouped.append(group["total"])
+
+    plt.figure()
+    plt.bar(range(len(heights_grouped)), heights_grouped, align='edge')
+    plt.xticks(range(len(x_labels)), x_labels)
+    plt.xlabel("Duration of 10 Minutes")
+    plt.ylabel("Number of Tweets")
+    plt.title("Collection: " + collection_name)
+    if save:
+        plt.savefig(os.getcwd() + "/barcharts/" + collection_name + "_basic" + '.svg' , format='svg', dpi=1200)
+    plt.show()
+
+def plot_duplicate_histogram(start_time, end_time, collection_name, save=True):
+    grouped_tweets = get_tweets_grouped_by_time(start_time, end_time, collection_name)
+    duplicate_tweets = get_duplicates_grouped_by_time(start_time, end_time, collection_name)
+    heights_grouped = []
+    x_labels = range(0, 70, 10)
+    for group in grouped_tweets:
+        heights_grouped.append(group["total"])
+
+    heights_duplicates = []
+    for group in duplicate_tweets:
+        heights_duplicates.append(group["total"])
+
+    plt.figure()
+    plt.bar(range(len(heights_grouped)), heights_grouped, align='edge')
+    plt.bar(range(len(heights_duplicates)), heights_duplicates, align='edge')
+    plt.xticks(range(len(x_labels)), x_labels)
+    plt.xlabel("Duration of 10 Minutes")
+    plt.ylabel("Number of Tweets")
+    plt.title("Collection: " + collection_name)
+    if save:
+        plt.savefig(os.getcwd() + "/barcharts/" + collection_name + "_duplicates" + '.svg' , format='svg', dpi=1200)
+    plt.show()
+
+if __name__ == '__main__':
+    collections = ["basic_crawler_1a", "enhanced_crawler_1b", "geo_tagged_1c"]
+    start = datetime(2018, 11, 2, 19, 0)
+    end = datetime(2018, 11, 2, 19, 30)
+    for collection in collections:
+        plot_basic_histogram(start, end, collection)
+        plot_duplicate_histogram(start, end, collection)
+
+
+
