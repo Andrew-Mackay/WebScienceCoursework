@@ -1,7 +1,9 @@
 import matplotlib.pyplot as plt
 from pymongo import MongoClient
 from datetime import datetime
+from datetime import timedelta
 import os
+
 
 def get_tweets_grouped_by_time(start_time, end_time, collection_name):
     client = MongoClient()
@@ -26,7 +28,7 @@ def get_tweets_grouped_by_time(start_time, end_time, collection_name):
                     "interval": {
                         "$subtract": [ 
                         { "$minute": "$created_at" },
-                        { "$mod": [{ "$minute": "$created_at"}, 2] }
+                        { "$mod": [{ "$minute": "$created_at"}, 10] }
                         ]
                     }
                 },
@@ -84,7 +86,7 @@ def get_duplicates_grouped_by_time(start_time, end_time, collection_name):
                     "interval": {
                         "$subtract": [ 
                         { "$minute": "$created_at" },
-                        { "$mod": [{ "$minute": "$created_at"}, 2] }
+                        { "$mod": [{ "$minute": "$created_at"}, 10] }
                         ]
                     }
                 },
@@ -122,7 +124,7 @@ def get_retweeted_grouped_by_time(start_time, end_time, collection_name):
                     "interval": {
                         "$subtract": [ 
                         { "$minute": "$created_at" },
-                        { "$mod": [{ "$minute": "$created_at"}, 2] }
+                        { "$mod": [{ "$minute": "$created_at"}, 10] }
                         ]
                     }
                 },
@@ -158,7 +160,7 @@ def get_quoted_grouped_by_time(start_time, end_time, collection_name):
                     "interval": {
                         "$subtract": [ 
                         { "$minute": "$created_at" },
-                        { "$mod": [{ "$minute": "$created_at"}, 2] }
+                        { "$mod": [{ "$minute": "$created_at"}, 10] }
                         ]
                     }
                 },
@@ -213,23 +215,29 @@ def plot_retweets_quotes_histogram(start_time, end_time, collection_name, save=T
     grouped_retweets = get_retweeted_grouped_by_time(start_time, end_time, collection_name)
     grouped_quotes = get_quoted_grouped_by_time(start_time, end_time, collection_name)
     heights_grouped = []
+    interval_tweets = []
+    interval_retweets = []
+    interval_quoted_tweets = []
     x_labels = [x for x in range(0, 70, 10)]
     for group in grouped_tweets:
-        print(group)
         heights_grouped.append(group["total"])
+        interval_tweets.append(group["_id"]["interval"]/10)
 
     heights_retweets = []
     for group in grouped_retweets:
         heights_retweets.append(group["total"])
+        interval_retweets.append(group["_id"]["interval"]/10)
 
     heights_quotes = []
     for group in grouped_quotes:
         heights_quotes.append(group["total"])
+        interval_quoted_tweets.append(group["_id"]["interval"]/10)
+
 
     plt.figure()
-    plt.bar(range(len(heights_grouped)), heights_grouped, align='edge')
-    plt.bar(range(len(heights_retweets)), heights_retweets, align='edge')
-    plt.bar(range(len(heights_quotes)), heights_quotes, align='edge')
+    plt.bar(interval_tweets, heights_grouped, align='edge')
+    plt.bar(interval_retweets, heights_retweets, align='edge')
+    plt.bar(interval_quoted_tweets, heights_quotes, align='edge')
     plt.xticks(range(len(x_labels)), x_labels)
     plt.xlabel("Duration of 10 Minutes")
     plt.ylabel("Number of Tweets")
@@ -241,8 +249,9 @@ def plot_retweets_quotes_histogram(start_time, end_time, collection_name, save=T
 
 if __name__ == '__main__':
     collections = ["basic_crawler_1a", "enhanced_crawler_1b", "geo_tagged_1c"]
-    start = datetime(2018, 11, 2, 19, 0)
-    end = datetime(2018, 11, 2, 19, 60)
+    # 23 18
+    start = datetime(2018, 11, 3, 0, 0)
+    end = start + timedelta(minutes=60)
     for collection in collections:
         plot_basic_histogram(start, end, collection)
         plot_duplicate_histogram(start, end, collection)

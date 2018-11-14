@@ -35,7 +35,6 @@ class Listener(tweepy.StreamListener):
         global users_with_geo_tagged_tweets
         users_with_geo_tagged_tweets.put(status.user.id)
         db[COLLECTION_NAME].insert(convert_to_datetime(status))
-        print("+1 stream tweet added")
         return True
 
     def on_error(self, status_code):
@@ -52,7 +51,6 @@ def process_user(user_id):
     for status in tweepy.Cursor(api.user_timeline, id=user_id).items():
         if status.geo is not None:
             db[COLLECTION_NAME].insert(convert_to_datetime(status))
-            print("+1 user tweet added")
         else:
             non_geo_count += 1
 
@@ -77,11 +75,9 @@ def trend_based_probes(threadName):
     glasgow_trends = glasgow_trends[0]['trends']  # Extract information
     sorted_glasgow_trends = sorted(glasgow_trends, key=lambda k: sorted_helper(k['tweet_volume']), reverse=True)  # sort trends by tweet volume
     for trend in sorted_glasgow_trends:
-        print(trend["name"], trend["tweet_volume"])
-        for status in tweepy.Cursor(api.search, q=trend["name"], rpp=100, lang="en", geocode=GLASGOW_GEOCODE).items():
+        for status in tweepy.Cursor(api.search, q=trend["name"], count=100, lang="en", geocode=GLASGOW_GEOCODE).items():
             if status.geo is not None:
                 db[COLLECTION_NAME].insert(convert_to_datetime(status))
-                print("+1 trend tweet added")
             if time_expired:
                 break
         if time_expired:
@@ -106,7 +102,7 @@ except:
    print("Error: unable to start thread")
 
 while datetime.now() < time_end:
-    time.sleep(10)
+    time.sleep(30)
     limits = api.rate_limit_status()
     resources = limits["resources"]
     searches = resources["search"]["/search/tweets"]
@@ -120,7 +116,5 @@ time_expired = True
 
 # Time expired
 twitterStream.disconnect()
-
-
-
-
+print("Start Time: ", start_time)
+print("End Time: ", time_end)

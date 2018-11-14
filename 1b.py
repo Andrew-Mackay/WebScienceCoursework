@@ -6,14 +6,14 @@ from pymongo import MongoClient
 import tweepy
 import json
 import time
+import queue
 import _thread
 from datetime import datetime
 from datetime import timedelta
 
 
-RUN_TIME = 30  # how long program should run for (in minutes)
+RUN_TIME = 59  # how long program should run for (in minutes)
 UK_WOEID = 	23424975  # WOEID for United Kingdom, used for finding trends
-MAX_TWEETS_PER_TREND = 40000  # Only take this many tweets per trend (helps to ensure a balance of tweets)
 COLLECTION_NAME = "enhanced_crawler_1b"
 time_expired = False
 
@@ -43,16 +43,9 @@ class Listener(tweepy.StreamListener):
 
 
 def process_user(user_id):
-    non_geo_count = 0  # Used to break from users who have many non geo tweets in a row
-    break_count = 5
     for status in tweepy.Cursor(api.user_timeline, id=user_id).items():
-        if status.geo is not None:
-            db[COLLECTION_NAME].insert(convert_to_datetime(status))
-            print("+1 user tweet added")
-        else:
-            non_geo_count += 1
-
-        if time_expired or non_geo_count > break_count:
+        db[COLLECTION_NAME].insert(convert_to_datetime(status))
+        if time_expired:
             break
 
 def user_based_probes(threadName):
@@ -72,15 +65,10 @@ def trend_based_probes(threadName):
     uk_trends = api.trends_place(UK_WOEID)  # get trends in United Kingdom (ensures language is English and users should be awake)
     uk_trends = uk_trends[0]['trends']  # Extract information
     sorted_uk_trends = sorted(uk_trends, key=lambda k: sorted_helper(k['tweet_volume']), reverse=True)  # sort trends by tweet volume
-    # print(uk_trends)
     for trend in sorted_uk_trends:
-        tweets_collected = 0
-        print(trend["name"], trend["tweet_volume"])
-        for status in tweepy.Cursor(api.search, q=trend["name"], rpp=100, lang="en").items():
-            tweets_collected += 1
+        for status in tweepy.Cursor(api.search, q=trend["name"], count=100, lang="en").items():
             db[COLLECTION_NAME].insert(convert_to_datetime(status))
-            # Move to next trend when collected enough from this trend
-            if tweets_collected > MAX_TWEETS_PER_TREND or time_expired:
+            if time_expired:
                 break
         if time_expired:
             break
@@ -104,7 +92,7 @@ except:
    print("Error: unable to start thread")
 
 while datetime.now() < time_end:
-    time.sleep(10)
+    time.sleep(30)
     limits = api.rate_limit_status()
     resources = limits["resources"]
     searches = resources["search"]["/search/tweets"]
@@ -118,3 +106,5 @@ time_expired = True
 
 # Time expired
 twitterStream.disconnect()
+print("Start Time: ", start_time)
+print("End Time: ", time_end)

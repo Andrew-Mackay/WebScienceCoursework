@@ -10,7 +10,7 @@ from datetime import datetime
 from datetime import timedelta
 
 
-RUN_TIME = 60  # how long program should run for (in minutes)
+RUN_TIME = 59  # how long program should run for (in minutes)
 COLLECTION_NAME = "basic_crawler_1a"
 
 client = MongoClient()
@@ -23,7 +23,6 @@ def convert_to_datetime(status):
 
 class Listener(tweepy.StreamListener):
     def on_status(self, status):
-        # global found_first_tweet, first_tweet
         db[COLLECTION_NAME].insert(convert_to_datetime(status))
         return True
 
@@ -50,5 +49,7 @@ while datetime.now() < time_end:
     time.sleep(30)
 
 twitterStream.disconnect()
+print("Start Time: ", start_time)
+print("End Time: ", time_end)
 
 
