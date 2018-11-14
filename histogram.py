@@ -180,7 +180,7 @@ def plot_basic_histogram(start_time, end_time, collection_name, save=True):
     plt.figure()
     plt.bar(range(len(heights_grouped)), heights_grouped, align='edge')
     plt.xticks(range(len(x_labels)), x_labels)
-    plt.xlabel("Duration of 10 Minutes")
+    plt.xlabel("Elapsed Time (Minutes)")
     plt.ylabel("Number of Tweets")
     plt.title("Collection: " + collection_name)
     if save:
@@ -200,12 +200,13 @@ def plot_duplicate_histogram(start_time, end_time, collection_name, save=True):
         heights_duplicates.append(group["total"])
 
     plt.figure()
-    plt.bar(range(len(heights_grouped)), heights_grouped, align='edge')
-    plt.bar(range(len(heights_duplicates)), heights_duplicates, align='edge')
+    plt.bar(range(len(heights_grouped)), heights_grouped, align='edge', label="Total Tweets")
+    plt.bar(range(len(heights_duplicates)), heights_duplicates, align='edge', label="Duplicates")
     plt.xticks(range(len(x_labels)), x_labels)
-    plt.xlabel("Duration of 10 Minutes")
+    plt.xlabel("Elapsed Time (Minutes)")
     plt.ylabel("Number of Tweets")
     plt.title("Collection: " + collection_name)
+    plt.legend()
     if save:
         plt.savefig(os.getcwd() + "/barcharts/" + collection_name + "_duplicates" + '.svg' , format='svg', dpi=1200)
     plt.show()
@@ -235,27 +236,41 @@ def plot_retweets_quotes_histogram(start_time, end_time, collection_name, save=T
 
 
     plt.figure()
-    plt.bar(interval_tweets, heights_grouped, align='edge')
-    plt.bar(interval_retweets, heights_retweets, align='edge')
-    plt.bar(interval_quoted_tweets, heights_quotes, align='edge')
+    if len(interval_tweets) > 0:
+        plt.bar(interval_tweets, heights_grouped, align='edge', label="Total Tweets")
+    if len(interval_retweets) > 0:
+        plt.bar(interval_retweets, heights_retweets, align='edge', label="Retweets")
+    if len(interval_quoted_tweets) > 0:
+        plt.bar(interval_quoted_tweets, heights_quotes, align='edge', label="Quotes")
     plt.xticks(range(len(x_labels)), x_labels)
     plt.xlabel("Duration of 10 Minutes")
     plt.ylabel("Number of Tweets")
     plt.title("Collection: " + collection_name)
+    plt.legend()
     if save:
         plt.savefig(os.getcwd() + "/barcharts/" + collection_name + "_rt_qt" + '.svg' , format='svg', dpi=1200)
     plt.show()
 
 
 if __name__ == '__main__':
-    collections = ["basic_crawler_1a", "enhanced_crawler_1b", "geo_tagged_1c"]
-    # 23 18
-    start = datetime(2018, 11, 3, 0, 0)
-    end = start + timedelta(minutes=60)
-    for collection in collections:
-        plot_basic_histogram(start, end, collection)
-        plot_duplicate_histogram(start, end, collection)
-        plot_retweets_quotes_histogram(start, end, collection)
+    collections = {
+        "basic_crawler_1a": {
+            "start_time":datetime(2018, 11, 14, 11, 0),
+            "end_time":datetime(2018, 11, 14, 12, 0)
+            },
+        "enhanced_crawler_1b": {
+            "start_time":datetime(2018, 11, 14, 12, 0),
+            "end_time":datetime(2018, 11, 14, 13, 0)
+            },
+        "geo_tagged_1c": {
+            "start_time":datetime(2018, 11, 14, 13, 0),
+            "end_time":datetime(2018, 11, 14, 14, 0)
+            }
+        }
+    for collection, time in collections.items():
+        plot_basic_histogram(time["start_time"], time["end_time"], collection)
+        plot_duplicate_histogram(time["start_time"], time["end_time"], collection)
+        plot_retweets_quotes_histogram(time["start_time"], time["end_time"], collection)
 
 
 

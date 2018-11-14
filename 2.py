@@ -15,7 +15,7 @@ for collection_name, collection in collections.items():
     total = db[collection_name].count()
     total_tweets += total
     collection["total"] = total
-    geo_tagged = db[collection_name].count_documents({"geo": {"$ne" : None}})
+    geo_tagged = db[collection_name].count_documents({"place": {"$ne" : None}})
     total_geo += geo_tagged
     collection["geo_tagged"] = geo_tagged
     print("Collection: ", collection_name)
@@ -29,7 +29,8 @@ print("    Geo-tagged tweets collected: ", geo_tagged)
 print("    Geo-tagged: ", "{0:.2f}".format((total_geo/total_tweets) * 100), "%")
 
 print("\n---------------------- 2b. -----------------")
-total = db.enhanced_crawler_1b.count()
+total = db.geo_tagged_1c.count()
+total = db.geo_tagged_1c.count_documents({"place": {"$ne" : None}})
 print("Geo-tagged data from Glasgow: ", total)
 overlap = 0
 for tweet in db.basic_crawler_1a.find():
