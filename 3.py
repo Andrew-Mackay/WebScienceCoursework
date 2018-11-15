@@ -5,66 +5,68 @@ from pymongo import MongoClient
 from lshash.lshash import LSHash
 from datasketch import MinHash, MinHashLSH
 import matplotlib.pyplot as plt
+from sklearn.feature_extraction.text import TfidfVectorizer
 import os
+import numpy as np
+import pandas as pd
+import nltk
+from sklearn.cluster import KMeans
+from sklearn.externals import joblib
+
+LOAD_KMEANS = True
+
 client = MongoClient()
 db = client.twitterdb
+tweet_text = []
+tweet_mongo_id = []
+for tweet in db.enhanced_crawler_1b.find({}, {"text":1, "_id":1}):
+  tweet_text.append(tweet["text"])
+  tweet_mongo_id.append(tweet["_id"])
 
 
-lsh = LSHash(5,256)
+#define vectorizer parameters
+tfidf_vectorizer = TfidfVectorizer()
 
-for text in db.basic_crawler_1a.find({}, {"text":1, "_id":0}):
-  m = MinHash(num_perm=256)
-  m.update(text["text"].encode('utf8'))
-  lsh.index(m.digest())
+tfidf_matrix = tfidf_vectorizer.fit_transform(tweet_text) #fit the vectorizer to tweet text
 
-hash_table = lsh.hash_tables[0]
-x = hash_table.keys()
-y = []
-for table in x:
-  y.append(len(hash_table.get_val(table)))
+print(tfidf_matrix.shape)
+num_clusters = 20
 
-print(x)
-print(y)
-plt.figure()
-plt.bar(x, y, align='edge')
-plt.xticks(rotation=90)
-# plt.xticks(range(len(x_labels)), x_labels)
-# plt.xlabel("Elapsed Time (Minutes)")
-# plt.ylabel("Number of Tweets")
-plt.title("LSH")
-plt.savefig(os.getcwd() + "/lsh.svg" , format='svg', dpi=1200)
+if LOAD_KMEANS:
+  km = joblib.load('tweet_cluster.pkl')
+
+else: 
+  km = KMeans(n_clusters=num_clusters)
+  km.fit(tfidf_matrix)
+  joblib.dump(km,  'tweet_cluster.pkl')
+
+clusters = km.labels_.tolist()
+
+tweets = { 'mongo_id': tweet_mongo_id, 'tweet_text': tweet_text, 'cluster': clusters }
+frame = pd.DataFrame(tweets, index = [clusters] , columns = ['mongo_id', 'cluster', 'tweet_text'])
+
+group_counts = frame['cluster'].value_counts().sort_index()
+
+
+bar_width = 0.2
+plt.bar(np.arange(num_clusters)-bar_width, group_counts, label="Total Tweets", width=bar_width)
+plt.xticks(range(num_clusters))
+geo_counts = []
+profile_location_counts = []
+for group in range(num_clusters):
+  ids = frame.loc[frame['cluster'] == group]["mongo_id"].values.tolist()
+  geo_counts.append(db.enhanced_crawler_1b.count_documents({"_id": {"$in": ids}, "place": {"$ne" : None}}))
+  profile_location_counts.append(
+    db.enhanced_crawler_1b.count_documents(
+      {"_id": {"$in": ids},
+       "user.location": {"$ne" : None}
+       }))
+
+print(geo_counts)
+print(profile_location_counts)
+plt.bar(np.arange(len(geo_counts))+bar_width, geo_counts, label="Geo-Tagged", width=bar_width)
+plt.bar(np.arange(len(profile_location_counts)), profile_location_counts, label="Profile Location", width=bar_width)
+plt.legend()
+plt.savefig(os.getcwd() + "/kmeanstest.svg" , format='svg', dpi=1200)
 plt.show()
-  # print(m.digest().shape)
-  # break
-# lsh.index([1,2,3,4,5,6,7,8])
-# lsh.index([2,3,4,5,6,7,8,9])
-# lsh.index([10,12,99,1,5,31,2,3])
-
-# lsh = LSHash(6,1)
-# lsh.index(4)
-# print(lsh.query([1,2,3,4,5,6,7,7]))
-
-# lsh = MinHashLSH(threshold-0.5, num_perm=128)
-# vectorizer = TfidfVectorizer()
-# corpus = []
-# for text in db.basic_crawler_1a.find({}, {"text":1, "_id":0}):
-#   corpus.append(text["text"])
-
-# X = vectorizer.fit_transform(corpus)
-# print("done")
-# print(X.shape)
-# print(X[0])
-# m = MinHash(num_perm=256)
-# for text in corpus:
-#   m.update(text.encode('utf8'))
-
-# print(m.digest())
-#   print(text["text"])
-#     m1 = MinHash(num_perm=256)
-#     for word in tweet["text"].split():
-#       print(word)
-#       m1.update(word.encode('utf8'))
-#       print(m1)
-
-    #  lsh.index(tweet)
 
