@@ -10,7 +10,7 @@ client = MongoClient()
 db = client.twitterdb
 
 
-lsh = LSHash(6,256)
+lsh = LSHash(5,256)
 
 for text in db.basic_crawler_1a.find({}, {"text":1, "_id":0}):
   m = MinHash(num_perm=256)
@@ -27,6 +27,7 @@ print(x)
 print(y)
 plt.figure()
 plt.bar(x, y, align='edge')
+plt.xticks(rotation=90)
 # plt.xticks(range(len(x_labels)), x_labels)
 # plt.xlabel("Elapsed Time (Minutes)")
 # plt.ylabel("Number of Tweets")
