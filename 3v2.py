@@ -69,3 +69,4 @@ plt.bar(np.arange(len(profile_location_counts)), profile_location_counts, label=
 plt.legend()
 plt.savefig(os.getcwd() + "/kmeanstest.svg" , format='svg', dpi=1200)
 plt.show()
+
