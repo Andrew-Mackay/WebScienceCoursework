@@ -58,10 +58,11 @@ def compute_new_location(row, new_location):
   return new_location
 
 
-geo_counts = []
-gained_location = []
-profile_location_counts = []
-voted_location = []
+geo_counts = [] # number of tweets geo-tagged per group
+gained_location = [] # number of tweets in the group that are assigned a new location
+profile_location_counts = [] # number of tweets whose user has set their profile location
+voted_location = [] # the majority location for the given group
+
 for group in range(num_clusters):
   group_rows = df.loc[df['cluster'] == group]
   ids = group_rows["mongo_id"].values.tolist()
@@ -87,10 +88,14 @@ for group in range(num_clusters):
   del filtered_out_null
   del group_rows
   voted_location.append(location_vote)
-  df.loc[df.cluster == group].place = df.loc[df.cluster == group].place.apply(lambda row: compute_new_location(row, location_vote))
+  df.loc[df.cluster == group, 'place'] = df.loc[df.cluster == group].place.apply(lambda row: compute_new_location(row, location_vote))
 
-print(df)
+groups_with_no_geo_location = []
+for i in range(len(gained_location)):
+  if gained_location[i] == 0:
+    groups_with_no_geo_location.append(i)
 
+print("Groups with no geo location:", groups_with_no_geo_location)
 bar_width = 0.2
 plt.bar(np.arange(num_clusters)-bar_width, group_counts, label="Total Tweets", width=-bar_width, align="edge")
 plt.bar(np.arange(len(geo_counts)), geo_counts, label="Geo-Tagged", width=-bar_width, align="edge")
