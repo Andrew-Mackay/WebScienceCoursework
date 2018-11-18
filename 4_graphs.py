@@ -12,6 +12,7 @@ collection = "flickr_sample"
 client = MongoClient()
 db = client.twitterdb
 
+# Group the photos by year based on the date they were uploaded. Include geo information and number of unique
 group_by_year = db[collection].aggregate([
     {
         '$group': {
@@ -30,6 +31,7 @@ group_by_year = db[collection].aggregate([
     }     
     ])
 
+# extract data from groups and plot bar graph
 year = []
 count = []
 unique = []
@@ -59,15 +61,18 @@ plt.tight_layout()
 plt.savefig(os.getcwd() + "/year_flickr.svg", format='svg', dpi=1200)
 plt.show()
 
+# get date inserted to database from mongo id
 def to_date(row):
     return row[0].generation_time
     
+# group photos by time inserted into db (10 minute windows)
 df = pd.DataFrame(list(db[collection].find({}, {"_id":1})))
 df["created_date"] = df.apply (lambda row: to_date (row),axis=1)
 agg_10m = df.groupby(pd.Grouper(key="created_date", freq='10Min')).size()
 photos_per_10m = agg_10m.values.tolist()[:-1]
 x_labels = range(0, 70, 10)
 
+# plot histogram
 plt.figure()
 plt.bar(range(len(photos_per_10m)), photos_per_10m, align='edge')
 plt.xticks(range(len(x_labels)), x_labels)

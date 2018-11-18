@@ -20,12 +20,14 @@ import os
 #     }
 collections = {
     "sample_twitter": {
-        "start_time":datetime(2018, 11, 14, 11, 0),
-        "end_time":datetime(2018, 11, 14, 12, 0)
+        "start_time":datetime(2018, 11, 14, 12, 0),
+        "end_time":datetime(2018, 11, 14, 13, 0)
         }
     }
 
+# Group tweets within time period into 10 minute groups
 def get_tweets_grouped_by_time(start_time, end_time, collection_name):
+    # connect to db
     client = MongoClient()
     db = client.twitterdb
     collection = db[collection_name]
@@ -58,6 +60,7 @@ def get_tweets_grouped_by_time(start_time, end_time, collection_name):
     ])
     return grouped_by_time
 
+# Compute the number of duplicates for the time period grouped into 10 minutes
 def get_duplicates_grouped_by_time(start_time, end_time, collection_name):
     client = MongoClient()
     db = client.twitterdb
@@ -116,6 +119,7 @@ def get_duplicates_grouped_by_time(start_time, end_time, collection_name):
     ])
     return grouped_by_time
 
+# Get the number of retweeted tweets between the time interval grouped into 10minute intervals
 def get_retweeted_grouped_by_time(start_time, end_time, collection_name):
     client = MongoClient()
     db = client.twitterdb
@@ -154,6 +158,7 @@ def get_retweeted_grouped_by_time(start_time, end_time, collection_name):
     ])
     return grouped_by_time
 
+# Get the number of quoted tweets between the time interval grouped into 10minute intervals
 def get_quoted_grouped_by_time(start_time, end_time, collection_name):
     client = MongoClient()
     db = client.twitterdb
@@ -190,6 +195,7 @@ def get_quoted_grouped_by_time(start_time, end_time, collection_name):
     ])
     return grouped_by_time
 
+# Plot basic histogram of tweet volume over time period
 def plot_basic_histogram(start_time, end_time, collection_name, save=True):
     grouped_tweets = get_tweets_grouped_by_time(start_time, end_time, collection_name)
     heights_grouped = []
@@ -207,6 +213,7 @@ def plot_basic_histogram(start_time, end_time, collection_name, save=True):
         plt.savefig(os.getcwd() + "/barcharts/" + collection_name + "_basic" + '.svg' , format='svg', dpi=1200)
     plt.show()
 
+# Plot histogram adding in duplicate statistic of tweet volume over time period
 def plot_duplicate_histogram(start_time, end_time, collection_name, save=True):
     grouped_tweets = get_tweets_grouped_by_time(start_time, end_time, collection_name)
     duplicate_tweets = get_duplicates_grouped_by_time(start_time, end_time, collection_name)
@@ -231,6 +238,7 @@ def plot_duplicate_histogram(start_time, end_time, collection_name, save=True):
         plt.savefig(os.getcwd() + "/barcharts/" + collection_name + "_duplicates" + '.svg' , format='svg', dpi=1200)
     plt.show()
 
+# Plot histogram adding in retweets and quotes statistics of tweet volume over time period
 def plot_retweets_quotes_histogram(start_time, end_time, collection_name, save=True):
     grouped_tweets = get_tweets_grouped_by_time(start_time, end_time, collection_name)
     grouped_retweets = get_retweeted_grouped_by_time(start_time, end_time, collection_name)

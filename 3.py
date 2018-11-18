@@ -10,15 +10,17 @@ import pandas as pd
 from sklearn.cluster import KMeans
 from sklearn.externals import joblib
 
-LOAD_KMEANS = False
-EVALUATION = False
-SAVE_GRAPH = True
+LOAD_KMEANS = False # Load pre-computed kmean python object
+EVALUATION = False # conduct evaluation
+SAVE_GRAPH = True # save the barchart
 # collection = "enhanced_crawler_1b"
 collection = "twitter_sample"
 
+# Connect to the database
 client = MongoClient()
 db = client.twitterdb
 
+# Generate "Corpus"
 tweet_text = []
 tweet_mongo_id = []
 place = []
@@ -40,20 +42,23 @@ for tweet in db[collection].find({}, {"text":1, "_id":1, "place":1}):
 #define vectorizer parameters
 tfidf_vectorizer = TfidfVectorizer() # stop_words="english" provided a 1% increase to classification
 
+# Compute Tfidf matrix based on corpus
 tfidf_matrix = tfidf_vectorizer.fit_transform(tweet_text) #fit the vectorizer to tweet text
 
-num_clusters = 20
+num_clusters = 20 # Number of clusters to use in kmeans classifier
 
 if LOAD_KMEANS:
-  km = joblib.load('k_means_model.pkl')
+  km = joblib.load('k_means_model.pkl') # load pre-computed model
 
 else: 
+  # Compute kmeans
   km = KMeans(n_clusters=num_clusters)
   km.fit(tfidf_matrix)
-  joblib.dump(km,  'k_means_model.pkl')
+  joblib.dump(km,  'k_means_model.pkl') # save to file
 
 clusters = km.labels_.tolist()
 
+# Put everything into a dataframe
 tweets = { 'mongo_id': tweet_mongo_id, 'tweet_text': tweet_text, 'cluster': clusters, 'place':place }
 df = pd.DataFrame(tweets, index = [clusters] , columns = ['mongo_id', 'cluster', 'tweet_text', 'place'])
 
@@ -72,6 +77,7 @@ gained_location = [] # number of tweets in the group that are assigned a new loc
 profile_location_counts = [] # number of tweets whose user has set their profile location
 voted_location = [] # the majority location for the given group
 
+# For each cluster, add necessary data to the above arrays
 for group in range(num_clusters):
   group_rows = df.loc[df['cluster'] == group]
   ids = group_rows["mongo_id"].values.tolist()
@@ -87,16 +93,18 @@ for group in range(num_clusters):
   filtered_out_null = group_rows["place"][group_rows["place"].notna()]
   location_vote = None
   if len(filtered_out_null) != 0:
+    # If at least one geo tagged tweet get all places from tweets
     places = filtered_out_null.apply(lambda row: extract_place (row))
-    location_vote = places.mode()[0]
+    location_vote = places.mode()[0] # select most popular place
     gained_location.append(non_geo)
-    del places
+    del places # used to save memory
 
   else:
     gained_location.append(0)
-  del filtered_out_null
-  del group_rows
+  del filtered_out_null # used to save memory
+  del group_rows # used to save memory
   voted_location.append(location_vote)
+  # Assign every non geotagged tweet the most popular location
   df.loc[df.cluster == group, 'place'] = df.loc[df.cluster == group].place.apply(lambda row: compute_new_location(row, location_vote))
 
 groups_with_no_geo_location = []
@@ -125,7 +133,7 @@ if SAVE_GRAPH:
   plt.savefig(os.getcwd() + "/tweet_cluster_analysis.svg" , format='svg', dpi=1200)
 plt.show()
 
-
+# Conduct evaluation
 if EVALUATION:
   total = 0
   correct = 0

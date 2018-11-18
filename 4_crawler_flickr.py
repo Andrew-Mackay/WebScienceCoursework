@@ -9,17 +9,18 @@ from datetime import timedelta
 import flickrapi
 
 RUN_TIME = 60  # how long program should run for (in minutes)
-COLLECTION_NAME = "flickr_crawler_4" # colection to store photos in
-EXTRAS = ["date_upload, date_taken, owner_name, geo, tags, o_dims, views, media"]
+COLLECTION_NAME = "flickr_crawler_4" # collection to store photos in
+EXTRAS = ["date_upload, date_taken, owner_name, geo, tags, o_dims, views, media"] # extra data for photos to get from flickr
 MAX_QUERIES = 3500 # Flickr limit is 3600 per hour but reduced to 3500 to ensure safe limit
 MAX_PAGES = 8 # Flickr only guarantees unique for first 4000 images in a search (500 per page -> 8 unique pages)
 SLEEP_TIME = 1 # Used to prevent exceeding 1 request per second (possibly could be lowered)
 
+# Connect to db
 client = MongoClient()
 db = client.twitterdb
 collection = db[COLLECTION_NAME]
 
-users_to_process = queue.Queue()
+users_to_process = queue.Queue() # stores flickr users
 
 queries_made = 0
 flickr = flickrapi.FlickrAPI(config_flickr.KEY, config_flickr.SECRET, format='parsed-json')

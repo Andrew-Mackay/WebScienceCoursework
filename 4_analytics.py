@@ -1,5 +1,5 @@
 '''
-4. Bbasic data analytics on Flickr dataset
+4. Basic data analytics on Flickr dataset
 '''
 import config
 from pymongo import MongoClient
@@ -18,6 +18,7 @@ print("Total Photos: ", total_collected)
 print("Geo-tagged Photos: ", geo_tagged)
 print("Geo-tagged: ", "{0:.2f}".format((geo_tagged/total_collected) * 100), "%\n")
 
+# Compute number of duplicate entries
 x = db[collection].aggregate([
     {"$group": {
         "_id": {"id": "$id"},
@@ -36,6 +37,7 @@ for y in x:
     number_of_duplicates += y["count"]
 print("Number of Duplicates: ", number_of_duplicates, "\n")
 
+# Compute view statistics
 x = db[collection].find({}, {"views":1, "_id":0, "id":1})
 total_views = 0
 max_views = 0
