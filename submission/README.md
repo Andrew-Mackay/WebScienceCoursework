@@ -15,7 +15,7 @@ First create a new Python environment based on Python 3.6.6.
 
 Next, activate this newly created environment and install the required packages with the command: `pip install -r requirements.txt`
 
-Install and run MongoDB version 2.6.10 (later versions should work but have not been tested).
+Install and run MongoDB version 2.6.10 (later versions should work but has not been tested).
 The command to run the mongo is: `sudo service mongodb start`
 
 The files config.example.py and config_flickr.example.py contain the structure for the config files.
@@ -51,6 +51,7 @@ To import the 5% sample data into mongo please run the following two commands:
 
 ## Basic Instructions for Running Crawlers and Performing Analytics on Sample Data:
 ### Running Crawlers:
+To change the runtime from the default 60 minutes and change the name of the collection to save to edit `RUN_TIME` and `COLLECTION_NAME` respectively. (Found at the top of each file)
 | Crawler Name        | Instruction           | Collection Name  |
 | ------------- |:-------------| :-----|
 | Basic Crawler               | `python 1a.py`     | basic_crawler_1a |
@@ -69,7 +70,7 @@ To import the 5% sample data into mongo please run the following two commands:
 ### Running Clustering and Evaluation (Task 3):
 On line 14 and 15 are the values `EVALUATION` and `SAVE_GRAPH`.
 By default EVALUATION is set to False and SAVE_GRAPH set to True.
-This is because when evaluating the graph is an unfair representation as 50% of the geo-tagged data has been set to None for the evaluation.
+This is because when evaluating, the graph is an unfair representation as 50% of the geo-tagged data has been set to None for the evaluation.
 To evaluate, set Evalauation to True.
 On line 13, `LOAD_KMEANS` is set to True by default. This loads the pre-computed kmeans python object from a file instead to save excess computation.
 
@@ -99,13 +100,12 @@ Once you have set these variables run the program with `python 1c.py`
 ### 2.py:
 Open the file and on line 8 set the dictionary of dictionaries to be the names of the collections you want to run the analytics on.
 For example, to run on collections basic_crawler_1a, enhanced_crawler_1b and  geo_tagged_1c the code would look like: `collections = {"basic_crawler_1a": {}, "enhanced_crawler_1b":{}, "geo_tagged_1c":{}}`
-The default will run on the sample data provided (`INSERT CODE HERE`)
 
 Once you have set this variable, run the program with `python 2.py`
 
 ### 2_histograms.py:
-Open the file and on line 7 modify the names of collections and start/end times to matched desired data.
-The default will run on the sample data (`INSERT CODE HERE`). The graphs will be saved in /barcharts/name_of_collection.svg.
+Open the file and on line 21 modify the names of collections and start/end times to matched desired data.
+The default will run on the sample data. The graphs will be saved in /barcharts/name_of_collection.svg.
 
 An example input would be:
 ```
@@ -140,7 +140,7 @@ collection = "enhanced_crawler_1b"
 Run the program with `python 3.py`
 ### 4_crawler_flickr.py:
 Open the file and on line 11 you can specifiy the time to run the crawler for. The default is 60 minutes.
-On line 12 you can specifiy the collection name, the default is `*TODO*`.
+On line 12 you can specifiy the collection name, the default is the flickr sample data.
 
 Example configuration:
 ```
