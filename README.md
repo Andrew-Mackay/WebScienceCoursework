@@ -21,16 +21,16 @@ The command to run the mongo is: `sudo service mongodb start`
 ---
 
 | File        | Description           | Related Task  |
-| ------------- |:-------------:| -----:|
+| ------------- |:-------------| :-----|
 | 1a.py                      | Basic Crawler Script for Task 1a         | 1a |
 | 1b.py                      | Enhanced Crawler Script for Task 1b      | 1b |
 | 1c.py                      | Glasgow Geo-tagged Crawler Script for Task 1c      | 1c |
 | 2.py                       | Performs numerical analysis of the collections from 1a, b and c | 2 |
 | 2_histograms.py            | Generates histograms based on the collections from 1a, b and c      |   2 |
 | 3.py                       | Performs clustering, generates graphs and optional evaluation based on task 3           |  3 |
-| 4_crawler_flickr.py        | right-aligned | 4 |
-| 4_analytics.py             | centered      | 4 |
-| 4_graphs.py                | are neat      | 4 |
+| 4_crawler_flickr.py        | Flickr Crawler Script for Task 4 | 4 |
+| 4_analytics.py             | Performs numerical analysis of the collection produced from 4_crawler_flickr.py      | 4 |
+| 4_graphs.py                | Generates graphical analysis of the collection produced from 4_crawler_flickr.py     | 4 |
 | config.py                  | Contains API keys for Twitter API | 1 |
 | config_flickr.py           | Contains API keys for Flickr API      | 4 |
 | /barcharts/                | Contains all histograms as .svg files generated from 2_histograms.py      |    2 |
