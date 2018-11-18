@@ -44,6 +44,9 @@ Next, open the files and fill in your API keys. They should be in string format.
 | tweet_cluster_analysis.svg | Graph produced by 3.py      |    3 |
 
 ## Running files:
+### Basic Instructions for Running on Sample Data:
+**TODO add basic instructions here**
+
 ### 1a.py:
 Open the file and on line 14 set the name of the desired mongodb collection. The default is "basic_crawler_1a".
 The run time of the program can also be adjusted by modifying line 13. The default is 60 minutes.
@@ -67,7 +70,8 @@ Once you have set this variable, run the program with `python 2.py`
 
 ### 2_histograms.py:
 Open the file and on line 7 modify the names of collections and start/end times to matched desired data.
-The default will run on the sample data. The graphs will be saved in /barcharts/name_of_collection.svg.
+The default will run on the sample data (`INSERT CODE HERE`). The graphs will be saved in /barcharts/name_of_collection.svg.
+
 An example input would be:
 ```
 collections = {
@@ -85,7 +89,31 @@ collections = {
         }
     }
 ```
+Run the program with `python 2_histograms.py`
+
 ### 3.py:
+Open the file and on lines 13, 14, 15 and 16 you will find configuration setttings.
+On line 13, setting `Load_KMEANS = True` will load precomputed k-means object from a file. This has been set to True by default and the model pre-computed for the sample data provided however if you change the collection on line 16 then this will need to be toggled to False. On line 14 is the toggle whether to run the evaluation method or not. If this is set to True then 50% of the geo-tagged tweets will be set to None and an evaluation performed on the classifiers ability. On line 15 the toggle wether to save the graphs or not is found. The saved graphs can be found at `/tweet_cluster_analysis.svg`. On line 16 is where the name of the collection is specified, by default this is the sample collection.
+
+Example configuration would be:
+```
+LOAD_KMEANS = True
+EVALUATION = True
+SAVE_GRAPH = False
+collection = "enhanced_crawler_1b"
+```
+Run the program with `python 3.py`
 ### 4_crawler_flickr.py:
+Open the file and on line 11 you can specifiy the time to run the crawler for. The default is 60 minutes.
+On line 12 you can specifiy the collection name, the default is `*TODO*`.
+
+Example configuration:
+```
+RUN_TIME = 60 
+COLLECTION_NAME = "flickr_crawler_4_v2"
+```
+Run the program with `python 4_crawler_flickr.py`
 ### 4_analytics.py:
+Open the file and on line 9 set the collection name to be the desired collection. By default this is the sample data set.
+Run the program with `python 4_analytics.py`
 ### 4_graphs.py:
