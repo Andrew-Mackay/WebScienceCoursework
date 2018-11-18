@@ -9,7 +9,7 @@ from datetime import timedelta
 import flickrapi
 
 RUN_TIME = 60  # how long program should run for (in minutes)
-COLLECTION_NAME = "flickr_crawler_4_v2" # colection to store photos in
+COLLECTION_NAME = "flickr_crawler_4" # colection to store photos in
 EXTRAS = ["date_upload, date_taken, owner_name, geo, tags, o_dims, views, media"]
 MAX_QUERIES = 3500 # Flickr limit is 3600 per hour but reduced to 3500 to ensure safe limit
 MAX_PAGES = 8 # Flickr only guarantees unique for first 4000 images in a search (500 per page -> 8 unique pages)
