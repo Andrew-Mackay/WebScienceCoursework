@@ -108,3 +108,7 @@ webScience/
 .idea/
 dump
 config_flickr.py
+
+sample_flickr.json
+sample_twitter.json
+submission/*.json
