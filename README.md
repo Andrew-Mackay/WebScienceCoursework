@@ -50,11 +50,13 @@ Next, open the files and fill in your API keys. They should be in string format.
 ### 1a.py:
 Open the file and on line 14 set the name of the desired mongodb collection. The default is "basic_crawler_1a".
 The run time of the program can also be adjusted by modifying line 13. The default is 60 minutes.
+
 Once you have set these variables run the program with `python 1a.py`
 
 ### 1b.py:
 Open the file and on line 17 set the name of the desired mongodb collection. The default is "enhanced_crawler_1b".
 The run time of the program can also be adjusted by modifying line 15. The default is 60 minutes.
+
 Once you have set these variables run the program with `python 1b.py`
 
 ### 1c.py:
@@ -66,6 +68,7 @@ Once you have set these variables run the program with `python 1c.py`
 Open the file and on line 8 set the dictionary of dictionaries to be the names of the collections you want to run the analytics on.
 For example, to run on collections basic_crawler_1a, enhanced_crawler_1b and  geo_tagged_1c the code would look like: `collections = {"basic_crawler_1a": {}, "enhanced_crawler_1b":{}, "geo_tagged_1c":{}}`
 The default will run on the sample data provided (`INSERT CODE HERE`)
+
 Once you have set this variable, run the program with `python 2.py`
 
 ### 2_histograms.py:
@@ -115,5 +118,10 @@ COLLECTION_NAME = "flickr_crawler_4_v2"
 Run the program with `python 4_crawler_flickr.py`
 ### 4_analytics.py:
 Open the file and on line 9 set the collection name to be the desired collection. By default this is the sample data set.
+
 Run the program with `python 4_analytics.py`
 ### 4_graphs.py:
+Open the file and on line 10 set the collection name to be the desired collection. By default this is the sample data set.
+The graphs are saved as `/hour_flickr.svg` and `year_flickr.svg`
+
+Run the program with `python 4_graphs.py`
