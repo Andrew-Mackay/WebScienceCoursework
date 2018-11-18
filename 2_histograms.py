@@ -4,6 +4,20 @@ from datetime import datetime
 from datetime import timedelta
 import os
 
+collections = {
+    "basic_crawler_1a": {
+        "start_time":datetime(2018, 11, 14, 11, 0),
+        "end_time":datetime(2018, 11, 14, 12, 0)
+        },
+    "enhanced_crawler_1b": {
+        "start_time":datetime(2018, 11, 14, 12, 0),
+        "end_time":datetime(2018, 11, 14, 13, 0)
+        },
+    "geo_tagged_1c": {
+        "start_time":datetime(2018, 11, 14, 13, 0),
+        "end_time":datetime(2018, 11, 14, 14, 0)
+        }
+    }
 
 def get_tweets_grouped_by_time(start_time, end_time, collection_name):
     client = MongoClient()
@@ -252,25 +266,10 @@ def plot_retweets_quotes_histogram(start_time, end_time, collection_name, save=T
     plt.show()
 
 
-if __name__ == '__main__':
-    collections = {
-        "basic_crawler_1a": {
-            "start_time":datetime(2018, 11, 14, 11, 0),
-            "end_time":datetime(2018, 11, 14, 12, 0)
-            },
-        "enhanced_crawler_1b": {
-            "start_time":datetime(2018, 11, 14, 12, 0),
-            "end_time":datetime(2018, 11, 14, 13, 0)
-            },
-        "geo_tagged_1c": {
-            "start_time":datetime(2018, 11, 14, 13, 0),
-            "end_time":datetime(2018, 11, 14, 14, 0)
-            }
-        }
-    for collection, time in collections.items():
-        plot_basic_histogram(time["start_time"], time["end_time"], collection)
-        plot_duplicate_histogram(time["start_time"], time["end_time"], collection)
-        plot_retweets_quotes_histogram(time["start_time"], time["end_time"], collection)
+for collection, time in collections.items():
+    plot_basic_histogram(time["start_time"], time["end_time"], collection)
+    plot_duplicate_histogram(time["start_time"], time["end_time"], collection)
+    plot_retweets_quotes_histogram(time["start_time"], time["end_time"], collection)
 
 
 

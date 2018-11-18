@@ -12,7 +12,7 @@ from datetime import datetime
 from datetime import timedelta
 
 
-RUN_TIME = 59  # how long program should run for (in minutes)
+RUN_TIME = 60  # how long program should run for (in minutes)
 UK_WOEID = 	23424975  # WOEID for United Kingdom, used for finding trends
 COLLECTION_NAME = "enhanced_crawler_1b"
 time_expired = False
