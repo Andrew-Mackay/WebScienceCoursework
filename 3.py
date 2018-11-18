@@ -1,46 +1,55 @@
-# LSH
+# Tweet clustering and Geo assignment
 
 import config
 from pymongo import MongoClient
-from lshash.lshash import LSHash
-from datasketch import MinHash, MinHashLSH
 import matplotlib.pyplot as plt
 from sklearn.feature_extraction.text import TfidfVectorizer
 import os
 import numpy as np
 import pandas as pd
-import nltk
 from sklearn.cluster import KMeans
 from sklearn.externals import joblib
 
 LOAD_KMEANS = True
+EVALUATION = True
+SAVE_GRAPH = False
+collection = "enhanced_crawler_1b"
 
 client = MongoClient()
 db = client.twitterdb
-collection = "geo_tagged_1c"
-collection = "enhanced_crawler_1b"
+
 tweet_text = []
 tweet_mongo_id = []
 place = []
+take_half_helper = False # used for taking 50% of geo data in evaluation
+original_geo_data = {} # used for later evaluation
 for tweet in db[collection].find({}, {"text":1, "_id":1, "place":1}):
   tweet_text.append(tweet["text"])
   tweet_mongo_id.append(tweet["_id"])
-  place.append(tweet["place"])
+  tweet_place = tweet["place"]
+  if EVALUATION:
+    if tweet_place is not None:
+      if take_half_helper:
+        original_geo_data[tweet["_id"]] = tweet_place["name"]
+        tweet_place = None
+
+      take_half_helper = not take_half_helper
+  place.append(tweet_place)
 
 #define vectorizer parameters
-tfidf_vectorizer = TfidfVectorizer()
+tfidf_vectorizer = TfidfVectorizer() # stop_words="english" provided a 1% increase to classification
 
 tfidf_matrix = tfidf_vectorizer.fit_transform(tweet_text) #fit the vectorizer to tweet text
 
 num_clusters = 20
 
 if LOAD_KMEANS:
-  km = joblib.load('tweet_cluster.pkl')
+  km = joblib.load('k_means_model.pkl')
 
 else: 
   km = KMeans(n_clusters=num_clusters)
   km.fit(tfidf_matrix)
-  joblib.dump(km,  'tweet_cluster.pkl')
+  joblib.dump(km,  'k_means_model.pkl')
 
 clusters = km.labels_.tolist()
 
@@ -56,7 +65,6 @@ def compute_new_location(row, new_location):
   if row is not None:
     return row["name"]
   return new_location
-
 
 geo_counts = [] # number of tweets geo-tagged per group
 gained_location = [] # number of tweets in the group that are assigned a new location
@@ -96,14 +104,33 @@ for i in range(len(gained_location)):
     groups_with_no_geo_location.append(i)
 
 print("Groups with no geo location:", groups_with_no_geo_location)
+
+total_non_geo = df.place.isna().sum()
+print("Total tweets not geo assigned:", total_non_geo)
+
 bar_width = 0.2
+plt.figure()
 plt.bar(np.arange(num_clusters)-bar_width, group_counts, label="Total Tweets", width=-bar_width, align="edge")
 plt.bar(np.arange(len(geo_counts)), geo_counts, label="Geo-Tagged", width=-bar_width, align="edge")
 plt.bar(np.arange(len(profile_location_counts)), profile_location_counts, label="Profile Location", width=bar_width, align="edge")
 plt.bar(np.arange(len(gained_location))+bar_width, gained_location, label="Assigned New Location", width=bar_width, align="edge")
 plt.legend()
 plt.xticks(range(num_clusters))
+plt.title("Tweet Cluster and Geo-location assignment")
+plt.xlabel("Cluster")
+plt.ylabel("Number of Tweets")
 plt.tight_layout()
-plt.savefig(os.getcwd() + "/kmeanstest.svg" , format='svg', dpi=1200)
+if SAVE_GRAPH:
+  plt.savefig(os.getcwd() + "/tweet_cluster_analysis.svg" , format='svg', dpi=1200)
 plt.show()
 
+
+if EVALUATION:
+  total = 0
+  correct = 0
+  for id, actual_location in original_geo_data.items():
+    assigned_location = df[df["mongo_id"] == id].place.item()
+    if actual_location == assigned_location:
+      correct += 1
+    total += 1
+  print("Correct:", correct, " Total:", total, " Percentage: ", (correct/total)*100)
