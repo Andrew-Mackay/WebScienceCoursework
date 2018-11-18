@@ -62,6 +62,7 @@ Next, open the files and fill in your API keys. They should be in string format.
 
 ### Running Clustering and Evaluation (Task 3):
 Run `python 3.py`. The graph will be saved at `tweet_cluster_analysis.svg`.
+
 ---
 
 ## Advanced Instructions for Using the Software on New Data:
