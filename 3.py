@@ -10,10 +10,11 @@ import pandas as pd
 from sklearn.cluster import KMeans
 from sklearn.externals import joblib
 
-LOAD_KMEANS = True
-EVALUATION = True
-SAVE_GRAPH = False
-collection = "enhanced_crawler_1b"
+LOAD_KMEANS = False
+EVALUATION = False
+SAVE_GRAPH = True
+# collection = "enhanced_crawler_1b"
+collection = "twitter_sample"
 
 client = MongoClient()
 db = client.twitterdb

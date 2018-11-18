@@ -1,12 +1,13 @@
 '''
-2. Develop basic data analytics
+4. Bbasic data analytics on Flickr dataset
 '''
 import config
 from pymongo import MongoClient
 
 print("---------------------- Flickr Analysis-----------------")
 
-collection = "flickr_crawler_4_v2"
+# collection = "flickr_crawler_4_v2"
+collection = "sample_flickr"
 client = MongoClient()
 db = client.twitterdb
 

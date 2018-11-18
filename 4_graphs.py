@@ -6,8 +6,9 @@ import os
 import numpy as np
 import pandas as pd
 
+# collection = "flickr_crawler_4_v2"
+collection = "flickr_sample"
 
-collection = "flickr_crawler_4_v2"
 client = MongoClient()
 db = client.twitterdb
 
