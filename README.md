@@ -22,6 +22,12 @@ The files config.example.py and config_flickr.example.py contain the structure f
 Run `mv config.example.py config.py` and then `mv config_flickr.example.py config_flickr.py`.
 Next, open the files and fill in your API keys. They should be in string format.
 
+To import the 5% sample data into mongo please run the following two commands:
+
+`mongoimport --db twitterdb --collection sample_twitter --file sample_twitter.json`
+
+`mongoimport --db twitterdb --collection sample_flickr --file sample_flickr.json`
+
 ## File Descriptions
 
 | File        | Description           | Related Task  |
