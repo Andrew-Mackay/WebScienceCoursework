@@ -52,6 +52,7 @@ To import the 5% sample data into mongo please run the following two commands:
 ## Basic Instructions for Running Crawlers and Performing Analytics on Sample Data:
 ### Running Crawlers:
 To change the runtime from the default 60 minutes and change the name of the collection to save to edit `RUN_TIME` and `COLLECTION_NAME` respectively. (Found at the top of each file)
+
 | Crawler Name        | Instruction           | Collection Name  |
 | ------------- |:-------------| :-----|
 | Basic Crawler               | `python 1a.py`     | basic_crawler_1a |
