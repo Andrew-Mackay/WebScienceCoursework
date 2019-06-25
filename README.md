@@ -1,9 +1,20 @@
 # WebScience Coursework 2018
+Data Crawling and Analysis of *Twitter* and *Flickr*.
+
+Full report contained in ```Report.pdf```.
+
 ---
 Author: Andrew Mackay
 
 Matriculation Number: 2192793m
 
+---
+## Task(s):
+1. Develop a crawler to access as much Twitter data as possible.
+2. Develop basic data analytics.
+3. Enhance the geo-tagged data.
+4. Develop a crawler for any of the following social media sites (~~facebook~~, ~~Instagram~~, ~~Google Plus~~, ~~Tumblr~~, **Flickr**, ~~any other~~).
+    * Conduct data analysis similar to Twitter.
 ---
 ## Environment:
 This project has been developed using Python version 3.6.6 alongside the environment as specified in the requirements.txt file.
