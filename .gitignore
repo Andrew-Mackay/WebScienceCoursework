@@ -114,3 +114,4 @@ sample_twitter.json
 submission/*.json
 submission/config.py
 submission/config_flickr.py
+/submission_1
